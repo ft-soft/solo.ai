@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../model-exchange/*.json" Link="Fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../solo-agent/*.json" Link="SoloAgentFixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <PackageReference Include="xunit.v3" Version="4.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.10" />
+    <ProjectReference Include="../../src/Solo.Ai/Solo.Ai.csproj" />
+    <ProjectReference Include="../../src/Solo.Ai.Api/Solo.Ai.Api.csproj" />
+  </ItemGroup>
+</Project>

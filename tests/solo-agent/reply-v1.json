@@ -1,0 +1,18 @@
+{
+  "contractVersion": 1,
+  "result": {
+    "requestId": "10000000-0000-0000-0000-000000000001",
+    "chatId": "10000000-0000-0000-0000-000000000002",
+    "runId": "10000000-0000-0000-0000-000000000003",
+    "messageId": "10000000-0000-0000-0000-000000000004",
+    "outcome": "recommendation",
+    "text": "Рекомендуемый документ: Synthetic variant A.",
+    "selection": {
+      "formId": "20000000-0000-0000-0000-000000000001",
+      "presetId": "20000000-0000-0000-0000-000000000002",
+      "profileId": null
+    },
+    "clarificationOptions": []
+  },
+  "error": null
+}
