@@ -29,6 +29,10 @@ bootstrap и подготовки одной заявки нет.
 не отправляет. Defaults модельного пути выключены; локальные значения таймаутов
 не являются принятой production SLA.
 
+В Visograph отдельный блок `ModelExchange` не нужен: прокси использует активный
+LLM-профиль распознавания и существующий API-ключ проекта. После обновления кода
+перезапустите Visograph. [Пример прямого вызова](../../visograph/docs/reference/model-exchange.md#usage-example).
+
 Backend Solo передаёт Bearer service credential и `X-Solo-User-Id`, вычисленный из
 текущего `IUserService.User.RealEmployeeId`. Входящий browser header не используется.
 Solo AI принимает delegated identity только после проверки служебного ключа.
