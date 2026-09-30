@@ -5,9 +5,9 @@ receives a complete catalog and an accepted generation context over HTTP. `Solo.
 builds ordered model messages, calls Visograph once, validates the result against
 that catalog and returns text produced by trusted templates.
 
-`Solo.Ai.Host` is the normal executable. It authenticates the Solo backend and
-delegated user, enforces chat ownership and replay protection, and supplies server-owned
-history. The current runtime keeps chats in memory, capped at 1024 accepted attempts
+`Solo.Ai.Host` is the normal executable. Incoming authentication is temporarily removed.
+It uses the unverified `X-Solo-User-Id` header to partition chats, rejects replay and
+supplies server-owned history. The current runtime keeps chats in memory, capped at 1024 accepted attempts
 per process; persistent history, chat management and UI remain DOC-5748 work.
 See [runtime integration](docs/runtime-integration.md) and
 [the Solo → Solo AI HTTP contract](docs/solo-agent-api.md).
@@ -33,7 +33,7 @@ dotnet run --project tests/Solo.Ai.Tests --no-build --no-restore
 
 Tests use synthetic catalogs, HTTP handlers and an in-memory ASP.NET server,
 including independently stored request/reply and future-tool fixtures. They do
-not call a configured LLM. The endpoint requires the runtime's authentication
-policy and `ISoloAgentRunAuthorizer`; without the runtime gate it fails closed.
+not call a configured LLM. The endpoint requires `ISoloAgentRunRuntime`;
+without the runtime gate it fails closed.
 Configure the host with local `appsettings.Secrets.json` or environment variables;
 see [normal startup](docs/startup.md). No stand host, module or per-message fixture is needed.

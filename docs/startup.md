@@ -17,27 +17,28 @@ Windows Terminal. Фоновые дочерние процессы Codex зав�
 Текущий запуск использует две вкладки Windows Terminal; их закрытие или Ctrl+C
 останавливает соответствующий сервер. Логи видны непосредственно в этих вкладках.
 
-Конфигурация обоих приложений дополняется локальным `appsettings.Secrets.json`
-в каталоге проекта; этот файл исключён из Git. Переменные окружения и аргументы
-командной строки имеют приоритет. Стендовых hosts, DLL-модулей, environment
-bootstrap и подготовки одной заявки нет.
+Локальные настройки Box находятся в `src/Demands.Web.Box/appsettings.Development.json`
+репозитория Solo. Solo AI использует `src/Solo.Ai.Host/appsettings.Secrets.json`.
+Оба файла исключены из Git. Переменные окружения и аргументы командной строки
+имеют приоритет. Стендовых hosts, DLL-модулей, environment bootstrap и подготовки
+одной заявки нет.
 
-В Solo задаются `SoloAgent:Client` (URL Solo AI, Enabled, deadlines и byte caps)
-и `SoloAgent:ServiceKey`. В Solo AI тот же ключ задаётся как `SoloBackend:ApiKey`,
-а также настраиваются `SoloAgentModelApi`, `SoloAgentModel`, `VisographModelClient`.
-Ключ Visograph принадлежит backend Solo AI. Его и служебный ключ клиент Solo
-не отправляет. Defaults модельного пути выключены; локальные значения таймаутов
+В Solo задаётся `SoloAgent:Client` (URL Solo AI, Enabled, deadlines и byte caps).
+В Solo AI настраиваются `SoloAgentModelApi`, `SoloAgentModel`, `VisographModelClient`.
+Входящая авторизация Solo AI временно удалена: `SoloAgent:ServiceKey` и
+`SoloBackend:ApiKey` больше не используются. Ключ Visograph по-прежнему принадлежит
+backend Solo AI и не отправляется клиентом Solo. Defaults модельного пути выключены; локальные значения таймаутов
 не являются принятой production SLA.
 
 В Visograph отдельный блок `ModelExchange` не нужен: прокси использует активный
 LLM-профиль распознавания и существующий API-ключ проекта. После обновления кода
 перезапустите Visograph. [Пример прямого вызова](../../visograph/docs/reference/model-exchange.md#usage-example).
 
-Backend Solo передаёт Bearer service credential и `X-Solo-User-Id`, вычисленный из
-текущего `IUserService.User.RealEmployeeId`. Входящий browser header не используется.
-Solo AI принимает delegated identity только после проверки служебного ключа.
-На HTTP этот credential принимается только через loopback; для удалённого сервиса
-нужен HTTPS. Правами чтения каталога продолжает управлять Solo.
+Backend Solo передаёт только `X-Solo-User-Id`, вычисленный из текущего
+`IUserService.User.RealEmployeeId`. Входящий browser header не используется.
+Solo AI требует один непустой GUID в этом заголовке, но не проверяет подлинность
+отправителя. Это контекст для разделения чатов, а не авторизация.
+Правами чтения каталога продолжает управлять Solo.
 
 Для новой отправки достаточно:
 
@@ -59,7 +60,7 @@ ID возвращаются в ответе. Для продолжения ди�
 
 Solo AI владеет chat ownership, полной разрешённой историей и принятием run.
 Входящая history должна быть пустой; runtime сам добавляет историю перед моделью.
-Один чат принадлежит одному delegated user, одновременно исполняется один run;
+Один чат привязан к одному переданному user ID, одновременно исполняется один run;
 Повтор messageId того же пользователя отклоняется во всех чатах, включая повтор первой отправки с
 новым chatId; request/run IDs также не принимаются повторно. Ошибки ownership и replay возвращают
 HTTP 403. Завершение, ошибка или отмена освобождают

@@ -1,19 +1,13 @@
 using System.Net;
-using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Solo.Ai.Api;
 using Solo.Ai.Client;
 using Solo.Ai.Visograph;
@@ -24,10 +18,10 @@ namespace Solo.Ai.Tests;
 public sealed class SoloAgentModelEndpointTests
 {
     [Fact]
-    public async Task ReceiveIndependentFixtureAndReturnCompatibleReplyAfterRuntimeAuthorization()
+    public async Task ReceiveIndependentFixtureAndReturnCompatibleReplyWithoutAuthentication()
     {
         var model = new ModelClient();
-        var gate = new RunAuthorizer();
+        var gate = new RunRuntime();
         using var host = await CreateHostAsync(model, gate);
         using var client = CreateClient(host);
         using var response = await client.PostAsync(SoloAgentModelEndpoint.Path, CreateContent(ReadFixture()), TestContext.Current.CancellationToken);
@@ -43,15 +37,25 @@ public sealed class SoloAgentModelEndpointTests
     }
 
     [Theory]
-    [InlineData("unauthenticated", HttpStatusCode.Unauthorized)]
+    [InlineData("missing_user", HttpStatusCode.BadRequest)]
+    [InlineData("invalid_user", HttpStatusCode.BadRequest)]
+    [InlineData("empty_user", HttpStatusCode.BadRequest)]
+    [InlineData("multiple_users", HttpStatusCode.BadRequest)]
     [InlineData("foreign_run", HttpStatusCode.Forbidden)]
     [InlineData("duplicate", HttpStatusCode.Forbidden)]
     [InlineData("missing_runtime", HttpStatusCode.ServiceUnavailable)]
-    public async Task RejectWithoutDispatchWhenAuthenticationOrAcceptedRunIsMissing(string scenario, HttpStatusCode expected)
+    public async Task RejectInvalidContextOrUnacceptedRunWithoutDispatch(string scenario, HttpStatusCode expected)
     {
         var model = new ModelClient();
-        using var host = await CreateHostAsync(model, scenario == "missing_runtime" ? null : new RunAuthorizer());
-        using var client = CreateClient(host, scenario != "unauthenticated");
+        using var host = await CreateHostAsync(model, scenario == "missing_runtime" ? null : new RunRuntime());
+        using var client = CreateClient(host);
+        if (scenario is "missing_user" or "invalid_user" or "empty_user" or "multiple_users")
+        {
+            client.DefaultRequestHeaders.Remove("X-Solo-User-Id");
+            if (scenario == "invalid_user") client.DefaultRequestHeaders.Add("X-Solo-User-Id", "invalid");
+            if (scenario == "empty_user") client.DefaultRequestHeaders.Add("X-Solo-User-Id", Guid.Empty.ToString());
+            if (scenario == "multiple_users") client.DefaultRequestHeaders.Add("X-Solo-User-Id", new[] { Guid.NewGuid().ToString(), Guid.NewGuid().ToString() });
+        }
         var request = ReadFixture();
         if (scenario == "foreign_run")
             request["input"]!["runId"] = Guid.NewGuid();
@@ -72,7 +76,7 @@ public sealed class SoloAgentModelEndpointTests
     public async Task RejectWireIncompatibilityBeforeRuntimeOrModel(string scenario, string outcome)
     {
         var model = new ModelClient();
-        var gate = new RunAuthorizer();
+        var gate = new RunRuntime();
         using var host = await CreateHostAsync(model, gate);
         using var client = CreateClient(host);
         var request = ReadFixture();
@@ -90,7 +94,7 @@ public sealed class SoloAgentModelEndpointTests
     public async Task PreserveTechnicalModelFailureWithoutContentOrRawException()
     {
         var model = new ModelClient { Fail = true };
-        using var host = await CreateHostAsync(model, new RunAuthorizer());
+        using var host = await CreateHostAsync(model, new RunRuntime());
         using var client = CreateClient(host);
         using var response = await client.PostAsync(SoloAgentModelEndpoint.Path, CreateContent(ReadFixture()), TestContext.Current.CancellationToken);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
@@ -103,10 +107,10 @@ public sealed class SoloAgentModelEndpointTests
     }
 
     [Fact]
-    public async Task RejectOversizedFullSnapshotBeforeAuthorizationOrDispatch()
+    public async Task RejectOversizedFullSnapshotBeforeRuntimeOrDispatch()
     {
         var model = new ModelClient();
-        var gate = new RunAuthorizer();
+        var gate = new RunRuntime();
         using var host = await CreateHostAsync(model, gate, maximumBytes: 1);
         using var client = CreateClient(host);
         using var response = await client.PostAsync(SoloAgentModelEndpoint.Path, CreateContent(ReadFixture()), TestContext.Current.CancellationToken);
@@ -119,7 +123,7 @@ public sealed class SoloAgentModelEndpointTests
     public async Task DeadlineAlsoBoundsRuntimeGate()
     {
         var model = new ModelClient();
-        using var host = await CreateHostAsync(model, new RunAuthorizer { Stall = true }, timeout: TimeSpan.FromMilliseconds(100));
+        using var host = await CreateHostAsync(model, new RunRuntime { Stall = true }, timeout: TimeSpan.FromMilliseconds(100));
         using var client = CreateClient(host);
         using var response = await client.PostAsync(SoloAgentModelEndpoint.Path, CreateContent(ReadFixture()), TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.GatewayTimeout, response.StatusCode);
@@ -133,7 +137,7 @@ public sealed class SoloAgentModelEndpointTests
     public async Task RejectMessageReplayThroughRealRuntimeWithoutCallingModelAgain(bool newChat)
     {
         var model = new ModelClient();
-        using var host = await CreateHostAsync(model, new SoloAgentRunAuthorizer());
+        using var host = await CreateHostAsync(model, new SoloAgentRunRuntime());
         using var client = CreateClient(host);
         var request = ReadFixture();
         request["input"]!["history"] = new JsonArray();
@@ -147,7 +151,7 @@ public sealed class SoloAgentModelEndpointTests
         Assert.Equal(1, model.Calls);
     }
 
-    private static Task<IHost> CreateHostAsync(ModelClient model, ISoloAgentRunAuthorizer? gate, long maximumBytes = 100_000, TimeSpan? timeout = null)
+    private static Task<IHost> CreateHostAsync(ModelClient model, ISoloAgentRunRuntime? gate, long maximumBytes = 100_000, TimeSpan? timeout = null)
     {
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
@@ -163,22 +167,20 @@ public sealed class SoloAgentModelEndpointTests
         return new HostBuilder().ConfigureWebHost(builder => builder.UseTestServer().ConfigureServices(services =>
         {
             services.AddRouting();
-            services.AddAuthentication("test-service").AddScheme<AuthenticationSchemeOptions, ServiceAuthenticationHandler>("test-service", _ => { });
-            services.AddAuthorization(options => options.AddPolicy("solo-backend", policy => policy.RequireAuthenticatedUser().RequireRole("solo-backend")));
             services.AddSoloAgentModelEndpoint(configuration);
             services.AddSingleton<IModelGenerationClient>(model);
-            if (gate is not null) services.AddSingleton<ISoloAgentRunAuthorizer>(gate);
+            if (gate is not null) services.AddSingleton<ISoloAgentRunRuntime>(gate);
         }).Configure(app =>
         {
-            app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
-            app.UseEndpoints(endpoints => endpoints.MapSoloAgentModelEndpoint("solo-backend"));
+            app.UseRouting();
+            app.UseEndpoints(endpoints => endpoints.MapSoloAgentModelEndpoint());
         })).StartAsync(TestContext.Current.CancellationToken);
     }
 
-    private static HttpClient CreateClient(IHost host, bool authenticated = true)
+    private static HttpClient CreateClient(IHost host)
     {
         var client = host.GetTestClient();
-        if (authenticated) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "synthetic-service-credential");
+        client.DefaultRequestHeaders.Add("X-Solo-User-Id", "20000000-0000-0000-0000-000000000001");
         return client;
     }
     private static string FixturePath(string name) => System.IO.Path.Combine(AppContext.BaseDirectory, "SoloAgentFixtures", name);
@@ -201,30 +203,20 @@ public sealed class SoloAgentModelEndpointTests
         }
     }
 
-    private sealed class RunAuthorizer : ISoloAgentRunAuthorizer
+    private sealed class RunRuntime : ISoloAgentRunRuntime
     {
         public PreparedGenerationInput PrepareGeneration(PreparedGenerationInput input) => input;
         public void Complete(PreparedGenerationInput input, SoloAgentResponse? result) { }
         private readonly HashSet<Guid> _acceptedRequests = [];
         public int Calls { get; private set; }
         public bool Stall { get; init; }
-        public Task<bool> AuthorizeAndAcceptAsync(ClaimsPrincipal sender, PreparedGenerationInput input, CancellationToken cancellationToken)
+        public Task<bool> TryAcceptAsync(Guid owner, PreparedGenerationInput input, CancellationToken cancellationToken)
         {
             Calls++;
             if (Stall) return new TaskCompletionSource<bool>().Task;
-            var valid = sender.IsInRole("solo-backend") && input.RunId == Guid.Parse("10000000-0000-0000-0000-000000000003") && _acceptedRequests.Add(input.RequestId);
+            var valid = owner != Guid.Empty && input.RunId == Guid.Parse("10000000-0000-0000-0000-000000000003") && _acceptedRequests.Add(input.RequestId);
             return Task.FromResult(valid);
         }
     }
 
-    private sealed class ServiceAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder)
-        : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
-    {
-        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
-        {
-            if (Request.Headers.Authorization != "Bearer synthetic-service-credential") return Task.FromResult(AuthenticateResult.NoResult());
-            var identity = new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "20000000-0000-0000-0000-000000000001"), new Claim(ClaimTypes.Role, "solo-backend")], Scheme.Name);
-            return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme.Name)));
-        }
-    }
 }

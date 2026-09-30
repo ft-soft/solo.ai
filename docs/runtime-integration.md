@@ -1,8 +1,8 @@
 # Runtime integration
 
 Solo authenticates the sender and reads its permission-scoped catalog. Solo AI
-authorizes the selected chat and run, reads only that chat's server-owned history,
-and accepts one generation attempt before the model. Request/chat/run/message IDs are correlation, not authority.
+currently accepts unauthenticated requests, partitions chats by the supplied user ID,
+reads that chat's server-owned history and accepts one generation attempt before the model. Request/chat/run/message IDs are correlation, not authority.
 Duplicate submissions and reconnects must not automatically start another attempt.
 
 The Solo frontend enters through `POST /api/v2/soloAgent/SendMessage` with only
@@ -18,12 +18,12 @@ inside the authenticated Solo request context, then sends the complete snapshot
 through the `Solo.Ai.Client` NuGet package to `POST /api/v1/solo-agent/generations`. Never replace
 that snapshot with a browser catalog or arbitrary user/profile ID. Solo does not
 reference this repository's source projects; it consumes the published client package.
-The receiving endpoint applies the runtime's
-authentication policy and `ISoloAgentRunAuthorizer.AuthorizeAndAcceptAsync` before
-calling the model pipeline. This gate verifies sender, ownership, permitted history
-and acceptance of one attempt; without an implementation the endpoint fails closed.
-The normal host uses a backend service key and delegated user header, described in
-[startup](startup.md); the browser does not supply either credential or delegated identity.
+The receiving endpoint calls `ISoloAgentRunRuntime.TryAcceptAsync` before the model
+pipeline to check chat/user consistency, history, replay and acceptance of one attempt;
+without a runtime implementation the endpoint fails closed. Incoming authentication
+is temporarily removed. `X-Solo-User-Id` is unverified context, not proof of identity.
+Solo derives that header from its server user; the browser does not supply it.
+See [startup](startup.md).
 
 `SoloAgentModelPipeline` accepts the prepared snapshot only after those checks.
 The snapshot contains
@@ -87,11 +87,11 @@ and must be checked in deployment. Cancellation does not prove provider compute
 has stopped. No component here implements persistence or exactly-once delivery.
 
 The normal executable `Solo.Ai.Host` registers `AddSoloAgentModelEndpoint(configuration)` and
-`MapSoloAgentModelEndpoint` with its backend authentication policy. Its
-`SoloAgentRunAuthorizer` supplies server-owned history and completes each accepted
+`MapSoloAgentModelEndpoint()` without an authentication policy. Its
+`SoloAgentRunRuntime` supplies server-owned history and completes each accepted
 attempt in the endpoint's finally block. Configure `SoloAgentModelApi` with Enabled, full request/response byte caps
 and RequestTimeout; configure `SoloAgentModel` and `VisographModelClient` for the
-pipeline and downstream HTTP call. Register the real `ISoloAgentRunAuthorizer`.
+pipeline and downstream HTTP call. Register the real `ISoloAgentRunRuntime`.
 The endpoint module provides no standalone chat host or default allow-all gate.
 
 The path remains disabled until the runtime wiring and the actual provider's role,

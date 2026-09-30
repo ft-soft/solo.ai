@@ -22,11 +22,10 @@ public static class SoloAgentModelEndpointExtensions
         return services;
     }
 
-    public static IEndpointConventionBuilder MapSoloAgentModelEndpoint(this IEndpointRouteBuilder endpoints, string authenticationPolicy)
+    public static IEndpointConventionBuilder MapSoloAgentModelEndpoint(this IEndpointRouteBuilder endpoints)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(authenticationPolicy);
         return endpoints.MapPost(SoloAgentModelEndpoint.Path,
             (Microsoft.AspNetCore.Http.HttpContext context, SoloAgentModelEndpoint endpoint) => endpoint.GenerateAsync(context))
-            .RequireAuthorization(authenticationPolicy);
+            .AllowAnonymous();
     }
 }

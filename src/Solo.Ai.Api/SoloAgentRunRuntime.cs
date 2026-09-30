@@ -1,10 +1,9 @@
-using System.Security.Claims;
 using Solo.Ai.Client;
 using Solo.Ai.Visograph;
 
 namespace Solo.Ai.Api;
 
-public sealed class SoloAgentRunAuthorizer : ISoloAgentRunAuthorizer
+public sealed class SoloAgentRunRuntime : ISoloAgentRunRuntime
 {
     private readonly object _gate = new();
     private readonly Dictionary<Guid, Chat> _chats = [];
@@ -12,12 +11,10 @@ public sealed class SoloAgentRunAuthorizer : ISoloAgentRunAuthorizer
     private readonly HashSet<Guid> _runs = [];
     private readonly HashSet<(Guid Owner, Guid MessageId)> _messages = [];
 
-    public Task<bool> AuthorizeAndAcceptAsync(ClaimsPrincipal sender, PreparedGenerationInput input, CancellationToken cancellationToken)
+    public Task<bool> TryAcceptAsync(Guid owner, PreparedGenerationInput input, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (sender.Identity?.IsAuthenticated != true || !sender.IsInRole("solo-backend") ||
-            !Guid.TryParse(sender.FindFirstValue(ClaimTypes.NameIdentifier), out var owner) || owner == Guid.Empty ||
-            input.History.Count != 0)
+        if (owner == Guid.Empty || input.History.Count != 0)
             return Task.FromResult(false);
         lock (_gate)
         {

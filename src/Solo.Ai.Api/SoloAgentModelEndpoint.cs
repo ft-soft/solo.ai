@@ -10,7 +10,7 @@ namespace Solo.Ai.Api;
 
 public sealed class SoloAgentModelEndpoint(
     ISoloAgentModelPipeline pipeline, IOptions<SoloAgentModelApiOptions> options,
-    ILogger<SoloAgentModelEndpoint> logger, ISoloAgentRunAuthorizer? authorizer = null)
+    ILogger<SoloAgentModelEndpoint> logger, ISoloAgentRunRuntime? runtime = null)
 {
     public const string Path = "/api/v1/solo-agent/generations";
     public const int ContractVersion = 1;
@@ -25,13 +25,12 @@ public sealed class SoloAgentModelEndpoint(
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted);
         try
         {
-            if (context.User.Identity?.IsAuthenticated != true)
-            {
-                outcome = "authentication_failed";
-                return Results.Unauthorized();
-            }
+            // Caller context only: this header is not authenticated by Solo AI.
+            var users = context.Request.Headers["X-Solo-User-Id"];
+            if (users.Count != 1 || !Guid.TryParse(users[0], out var owner) || owner == Guid.Empty)
+                return CreateError("validation_failed", StatusCodes.Status400BadRequest);
             var limits = options.Value;
-            if (!limits.IsValid() || authorizer is null)
+            if (!limits.IsValid() || runtime is null)
                 return CreateError("configuration_failure", StatusCodes.Status503ServiceUnavailable);
             deadline.CancelAfter(limits.RequestTimeout);
             if (context.Request.ContentType?.Split(';')[0].Trim() != "application/json")
@@ -49,14 +48,14 @@ public sealed class SoloAgentModelEndpoint(
                 input.MessageId == Guid.Empty || string.IsNullOrWhiteSpace(input.Message) || input.History is null || input.Catalog is null)
                 return CreateError("validation_failed", StatusCodes.Status400BadRequest);
             requestId = input.RequestId;
-            if (!await authorizer.AuthorizeAndAcceptAsync(context.User, input, deadline.Token).WaitAsync(deadline.Token))
+            if (!await runtime.TryAcceptAsync(owner, input, deadline.Token).WaitAsync(deadline.Token))
             {
                 outcome = "authorization_failed";
-                return Results.Forbid();
+                return Results.StatusCode(StatusCodes.Status403Forbidden);
             }
             acceptedInput = input;
             deadline.Token.ThrowIfCancellationRequested();
-            input = authorizer.PrepareGeneration(input);
+            input = runtime.PrepareGeneration(input);
             var result = await pipeline.GenerateAsync(input, deadline.Token).WaitAsync(deadline.Token);
             deadline.Token.ThrowIfCancellationRequested();
             outcome = result.Outcome;
@@ -90,7 +89,7 @@ public sealed class SoloAgentModelEndpoint(
         finally
         {
             if (acceptedInput is not null)
-                authorizer!.Complete(acceptedInput, deadline.IsCancellationRequested ? null : acceptedResult);
+                runtime!.Complete(acceptedInput, deadline.IsCancellationRequested ? null : acceptedResult);
             logger.LogInformation("solo_agent_generation requestId {RequestId} version {Version} outcome {Outcome} durationMs {DurationMs}",
                 requestId, ContractVersion, outcome, Stopwatch.GetElapsedTime(started).TotalMilliseconds);
         }
