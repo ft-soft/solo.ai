@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "candidate", "reason", "candidates"],
+  "properties": {
+    "kind": { "enum": ["recommendation", "clarification", "no_match"] },
+    "candidate": { "anyOf": [{ "$ref": "#/$defs/candidate" }, { "type": "null" }] },
+    "reason": { "enum": [null, "variant", "profile", "intent"] },
+    "candidates": { "type": "array", "items": { "$ref": "#/$defs/candidate" } }
+  },
+  "$defs": {
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["formId", "presetId", "profileId"],
+      "properties": {
+        "formId": { "type": "string", "format": "uuid" },
+        "presetId": { "type": ["string", "null"], "format": "uuid" },
+        "profileId": { "type": ["string", "null"], "format": "uuid" }
+      }
+    }
+  }
+}

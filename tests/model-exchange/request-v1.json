@@ -1,0 +1,12 @@
+{
+  "contractVersion": 1,
+  "requestId": "10000000-0000-0000-0000-000000000001",
+  "requiredCapabilities": ["ordered_messages", "non_streaming", "json_schema"],
+  "messages": [
+    { "role": "system", "content": "Synthetic trusted instructions" },
+    { "role": "user", "content": "Synthetic earlier question" },
+    { "role": "assistant", "content": "Synthetic earlier answer" },
+    { "role": "user", "content": "Synthetic current question" }
+  ],
+  "responseFormat": { "kind": "json_schema", "name": "SyntheticResult", "schema": { "type": "object", "additionalProperties": false, "properties": {} } }
+}
