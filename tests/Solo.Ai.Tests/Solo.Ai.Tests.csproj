@@ -13,5 +13,6 @@
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.10" />
     <ProjectReference Include="../../src/Solo.Ai/Solo.Ai.csproj" />
     <ProjectReference Include="../../src/Solo.Ai.Api/Solo.Ai.Api.csproj" />
+    <ProjectReference Include="../../src/Solo.Ai.Transcription/Solo.Ai.Transcription.csproj" />
   </ItemGroup>
 </Project>

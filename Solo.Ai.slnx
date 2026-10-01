@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="src/Solo.Ai.Client/Solo.Ai.Client.csproj" />
   <Project Path="src/Solo.Ai/Solo.Ai.csproj" />
+  <Project Path="src/Solo.Ai.Transcription/Solo.Ai.Transcription.csproj" />
   <Project Path="src/Solo.Ai.Api/Solo.Ai.Api.csproj" />
   <Project Path="src/Solo.Ai.Host/Solo.Ai.Host.csproj" />
   <Project Path="tests/Solo.Ai.Tests/Solo.Ai.Tests.csproj" />

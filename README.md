@@ -37,3 +37,6 @@ not call a configured LLM. The endpoint requires `ISoloAgentRunRuntime`;
 without the runtime gate it fails closed.
 Configure the host with local `appsettings.Secrets.json` or environment variables;
 see [normal startup](docs/startup.md). No stand host, module or per-message fixture is needed.
+
+Optional isolated [GigaAM v3 transcription](src/Solo.Ai.Transcription/README.md)
+provides an authenticated audio-to-text endpoint inside the .NET host. Disabled by default.
