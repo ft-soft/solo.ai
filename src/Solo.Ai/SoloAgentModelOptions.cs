@@ -6,6 +6,7 @@ namespace Solo.Ai;
 public sealed class SoloAgentModelOptions : ICustomConfiguration
 {
     public bool Enabled { get; init; }
+    public bool ConversationalMode { get; init; }
     public long MaxRequestBytes { get; init; }
     public TimeSpan TotalDeadline { get; init; }
     public TimeSpan ModelTimeout { get; init; }

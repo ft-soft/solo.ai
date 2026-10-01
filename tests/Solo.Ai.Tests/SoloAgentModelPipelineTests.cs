@@ -7,6 +7,26 @@ namespace Solo.Ai.Tests;
 
 public sealed class SoloAgentModelPipelineTests
 {
+    [Theory]
+    [InlineData(false, "no_match")]
+    [InlineData(true, "recommendation_rejected")]
+    public async Task ConversationalModeReturnsTextButStillRejectsInventedDocuments(bool invalidCandidate, string expected)
+    {
+        var input = CreateInput() with { Catalog = [] };
+        var client = new ModelClient(request => Task.FromResult(new ModelGenerationResponse(1, request.RequestId, "completed")
+        {
+            Content = JsonSerializer.Serialize(new { kind = invalidCandidate ? "recommendation" : "no_match",
+                candidate = invalidCandidate ? new DocumentCandidate(Guid.NewGuid(), null, null) : null,
+                reason = (string?)null, candidates = Array.Empty<DocumentCandidate>(), text = "Привет! Как дела?" }, ModelProtocol.JsonOptions)
+        }));
+        var pipeline = new SoloAgentModelPipeline(client, new() { Enabled = true, ConversationalMode = true,
+            MaxRequestBytes = 100000, TotalDeadline = TimeSpan.FromSeconds(5), ModelTimeout = TimeSpan.FromSeconds(5) }, new());
+        var result = await pipeline.GenerateAsync(input, TestContext.Current.CancellationToken);
+        Assert.Equal(expected, result.Outcome);
+        Assert.Equal(invalidCandidate ? null : "Привет! Как дела?", result.Text);
+        Assert.Contains("text", client.Request!.ResponseFormat.Schema.ToJsonString());
+    }
+
     [Fact]
     public async Task RecommendOnlyVerifiedCandidateAndPreserveCorrelation()
     {
