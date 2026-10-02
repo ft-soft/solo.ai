@@ -12,6 +12,37 @@ namespace Solo.Ai.Tests;
 
 public sealed class ConfigurationRegistrationTests
 {
+    [Theory]
+    [InlineData("MaximumParallelRuns", "0")]
+    [InlineData("MaximumPendingRuns", "0")]
+    [InlineData("FinalizationAttempts", "0")]
+    [InlineData("Enabled", "true")]
+    public void RejectInvalidGenerationLimitsOrMissingDependencies(string setting, string value)
+    {
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["SoloAiGeneration:" + setting] = value,
+        }).Build();
+        Assert.Throws<InvalidOperationException>(() => new ServiceCollection().AddSoloAiApi(config));
+    }
+
+    [Fact]
+    public void RegisterChatClientWithoutRedirectsCookiesOrAutomaticRetries()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSoloAiClient(new ConfigurationBuilder().Build());
+        using var provider = services.BuildServiceProvider();
+        Assert.NotNull(provider.GetRequiredService<SoloAiClient>());
+        var handler = provider.GetRequiredService<IHttpMessageHandlerFactory>().CreateHandler(SoloAiClient.ClientName);
+        while (handler is DelegatingHandler delegating) handler = delegating.InnerHandler!;
+        var transport = Assert.IsType<HttpClientHandler>(handler);
+        Assert.False(transport.AllowAutoRedirect);
+        Assert.False(transport.UseCookies);
+        using var client = provider.GetRequiredService<IHttpClientFactory>().CreateClient(SoloAiClient.ClientName);
+        Assert.Equal(Timeout.InfiniteTimeSpan, client.Timeout);
+    }
+
     [Fact]
     public void BindClientConfigurationFromItsDeclaredSection()
     {

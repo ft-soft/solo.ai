@@ -7,8 +7,7 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="../model-exchange/*.json" Link="Fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../solo-agent/*.json" Link="SoloAgentFixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures/**/*.json" CopyToOutputDirectory="PreserveNewest" />
     <PackageReference Include="xunit.v3" Version="4.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.10" />
     <ProjectReference Include="../../src/Solo.Ai/Solo.Ai.csproj" />

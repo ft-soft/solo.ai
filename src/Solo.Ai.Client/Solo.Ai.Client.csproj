@@ -5,9 +5,9 @@
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <PackageId>Solo.Ai.Client</PackageId>
-    <Version>0.1.0-preview.3</Version>
+    <Version>0.2.0-preview.2</Version>
     <Authors>SoloSpace</Authors>
-    <Description>HTTP client and wire contracts for the Solo AI generation endpoint.</Description>
+    <Description>HTTP client and wire v2 contracts for Solo AI chats, messages and runs.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
