@@ -1,0 +1,90 @@
+[
+  {
+    "status": 400,
+    "body": {
+      "contractVersion": 2,
+      "data": null,
+      "error": "validation_failed"
+    }
+  },
+  {
+    "status": 400,
+    "body": {
+      "contractVersion": 2,
+      "data": null,
+      "error": "unsupported_contract"
+    }
+  },
+  {
+    "status": 401,
+    "body": {
+      "contractVersion": 2,
+      "data": null,
+      "error": "authentication_required"
+    }
+  },
+  {
+    "status": 403,
+    "body": {
+      "contractVersion": 2,
+      "data": null,
+      "error": "forbidden_actor"
+    }
+  },
+  {
+    "status": 404,
+    "body": {
+      "contractVersion": 2,
+      "data": null,
+      "error": "not_found"
+    }
+  },
+  {
+    "status": 409,
+    "body": {
+      "contractVersion": 2,
+      "data": null,
+      "error": "chat_busy"
+    }
+  },
+  {
+    "status": 409,
+    "body": {
+      "contractVersion": 2,
+      "data": null,
+      "error": "idempotency_conflict"
+    }
+  },
+  {
+    "status": 409,
+    "body": {
+      "contractVersion": 2,
+      "data": null,
+      "error": "retry_not_allowed"
+    }
+  },
+  {
+    "status": 413,
+    "body": {
+      "contractVersion": 2,
+      "data": null,
+      "error": "limit_exceeded"
+    }
+  },
+  {
+    "status": 429,
+    "body": {
+      "contractVersion": 2,
+      "data": null,
+      "error": "capacity_exceeded"
+    }
+  },
+  {
+    "status": 503,
+    "body": {
+      "contractVersion": 2,
+      "data": null,
+      "error": "unavailable"
+    }
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "contractVersion": 2,
+  "requestId": "10000000-0000-0000-0000-000000000001",
+  "requiredCapabilities": ["ordered_messages", "non_streaming", "tool_calls"],
+  "tools": [{ "name": "synthetic_read", "argumentsSchema": { "type": "object", "additionalProperties": false, "properties": {} } }],
+  "messages": [
+    { "role": "system", "content": "Synthetic instructions" },
+    { "role": "user", "content": "Synthetic question" },
+    { "role": "assistant", "content": null, "toolCalls": [{ "callId": "call-1", "name": "synthetic_read", "arguments": {} }] },
+    { "role": "tool", "callId": "call-1", "content": "{\"data\":[]}" }
+  ]
+}

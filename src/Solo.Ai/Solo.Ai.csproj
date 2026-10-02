@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
+    <ProjectReference Include="../Solo.Ai.Client/Solo.Ai.Client.csproj" />
+    <EmbeddedResource Include="Recommendations/recommendation-v1.schema.json" LogicalName="Solo.Ai.recommendation-v1.schema.json" />
+    <EmbeddedResource Include="Storage/Migrations/*.sql" />
+  </ItemGroup>
+</Project>

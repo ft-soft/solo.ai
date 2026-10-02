@@ -1,0 +1,11 @@
+{
+  "contractVersion": 2,
+  "data": {
+    "chatId": "10000000-0000-0000-0000-000000000001",
+    "title": "Рабочая переписка",
+    "createdAt": "2026-09-30T00:00:00Z",
+    "lastMessageAt": null,
+    "latestRun": null
+  },
+  "error": null
+}

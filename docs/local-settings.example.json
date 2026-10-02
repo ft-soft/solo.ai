@@ -1,0 +1,22 @@
+{
+  "SoloAiAuthentication": {
+    "Issuer": "http://localhost:34100/butler",
+    "Audience": "solo-ai.api",
+    "AllowedClientId": "solo-ai-delegation",
+    "JwksUri": "http://localhost:34100/butler/.well-known/jwks",
+    "AllowHttpMetadata": true,
+    "ClockSkewSeconds": 5
+  },
+  "SoloAiStorage": {
+    "Enabled": true,
+    "DatabasePath": "",
+    "ChatRetentionDays": null
+  },
+  "SoloAiGeneration": { "Enabled": true },
+  "SoloAgentModel": { "Enabled": true },
+  "VisographModelClient": {
+    "Enabled": true,
+    "BaseUri": "http://127.0.0.1:1235/",
+    "ApiKey": ""
+  }
+}

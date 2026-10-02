@@ -1,0 +1,30 @@
+[
+  {
+    "body": "{\"contractVersion\":1,\"result\":null,\"error\":\"provider_error\"}",
+    "name": "old_envelope"
+  },
+  {
+    "body": "{\"contractVersion\":2,\"contractVersion\":2,\"data\":null,\"error\":null}",
+    "name": "duplicate"
+  },
+  {
+    "body": "{\"contractVersion\":2,\"data\":null,\"error\":null,\"ownerId\":\"untrusted\"}",
+    "name": "extra"
+  },
+  {
+    "body": "{\"contractVersion\":2,\"data\":null}",
+    "name": "missing"
+  },
+  {
+    "body": "null",
+    "name": "null"
+  },
+  {
+    "body": "{",
+    "name": "invalid_json"
+  },
+  {
+    "body": "{\"contractVersion\":1,\"data\":null,\"error\":null}",
+    "name": "wrong_version"
+  }
+]

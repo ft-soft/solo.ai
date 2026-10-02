@@ -38,6 +38,11 @@ ScaffoldingReadMe.txt
 
 # dotenv environment variables file
 .env
+**/appsettings.Secrets.json
+*.db
+*.db-wal
+*.db-shm
+*.db.lock
 
 # Others
 ~$*

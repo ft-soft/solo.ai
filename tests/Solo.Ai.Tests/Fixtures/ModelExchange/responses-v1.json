@@ -1,0 +1,11 @@
+[
+  { "status": 200, "response": { "contractVersion": 1, "requestId": "10000000-0000-0000-0000-000000000001", "outcome": "completed", "content": "{}", "usage": null } },
+  { "status": 403, "response": { "contractVersion": 1, "requestId": "10000000-0000-0000-0000-000000000001", "outcome": "project_unavailable", "stage": "routing", "usage": null } },
+  { "status": 400, "response": { "contractVersion": 1, "requestId": null, "outcome": "validation_failed", "stage": "validation", "usage": null } },
+  { "status": 400, "response": { "contractVersion": 1, "requestId": null, "outcome": "unsupported_contract", "stage": "validation", "usage": null } },
+  { "status": 503, "response": { "contractVersion": 1, "requestId": null, "outcome": "configuration_failure", "stage": "routing", "usage": null } },
+  { "status": 413, "response": { "contractVersion": 1, "requestId": null, "outcome": "limit_exceeded", "stage": "budget", "usage": null } },
+  { "status": 502, "response": { "contractVersion": 1, "requestId": "10000000-0000-0000-0000-000000000001", "outcome": "provider_error", "stage": "transport", "usage": null } },
+  { "status": 504, "response": { "contractVersion": 1, "requestId": "10000000-0000-0000-0000-000000000001", "outcome": "timeout", "stage": "transport", "usage": null } },
+  { "status": 502, "response": { "contractVersion": 1, "requestId": "10000000-0000-0000-0000-000000000001", "outcome": "incomplete_response", "stage": "response", "usage": null } }
+]

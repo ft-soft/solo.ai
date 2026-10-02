@@ -1,0 +1,17 @@
+{
+  "contractVersion": 2,
+  "data": {
+    "runId": "10000000-0000-0000-0000-000000000003",
+    "chatId": "10000000-0000-0000-0000-000000000001",
+    "userMessageId": "10000000-0000-0000-0000-000000000002",
+    "retryId": null,
+    "state": "completed",
+    "createdAt": "2026-09-30T00:00:01Z",
+    "startedAt": "2026-09-30T00:00:02Z",
+    "finishedAt": "2026-09-30T00:00:03Z",
+    "deadlineAt": "2026-09-30T00:01:01Z",
+    "outcomeCode": null,
+    "assistantMessageId": "10000000-0000-0000-0000-000000000005"
+  },
+  "error": null
+}

@@ -1,0 +1,17 @@
+{
+  "contractVersion": 2,
+  "data": {
+    "runId": "10000000-0000-0000-0000-000000000003",
+    "chatId": "10000000-0000-0000-0000-000000000001",
+    "userMessageId": "10000000-0000-0000-0000-000000000002",
+    "retryId": null,
+    "state": "failed",
+    "createdAt": "2026-09-30T00:00:01Z",
+    "startedAt": null,
+    "finishedAt": "2026-09-30T00:00:03Z",
+    "deadlineAt": "2026-09-30T00:01:01Z",
+    "outcomeCode": "dependency_authentication_failed",
+    "assistantMessageId": null
+  },
+  "error": null
+}
